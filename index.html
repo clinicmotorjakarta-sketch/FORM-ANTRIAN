@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Guest Check-in - Yamaha Motor Clinic</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { 
+            background: #0B0F19; 
+            color: #F1F5F9; 
+            padding: 16px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        .card { 
+            background: #131B2E; 
+            border: 1px solid #1E293B; 
+            padding: 24px 20px; 
+            border-radius: 16px; 
+            width: 100%; 
+            max-width: 400px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4); 
+        }
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .card-header h2 { 
+            font-size: 17px; 
+            font-weight: 700; 
+            color: #F1F5F9; 
+            margin-bottom: 6px; 
+            letter-spacing: 0.5px;
+        }
+        .card-header p { 
+            font-size: 11px; 
+            color: #94A3B8; 
+            line-height: 1.4;
+        }
+        .form-group { 
+            margin-bottom: 14px; 
+        }
+        label { 
+            display: block; 
+            font-size: 10px; 
+            font-weight: 700; 
+            color: #94A3B8; 
+            margin-bottom: 6px; 
+            letter-spacing: 0.5px;
+        }
+        input, select { 
+            width: 100%; 
+            padding: 11px 14px; 
+            background: #0B0F19; 
+            border: 1px solid #334155; 
+            border-radius: 8px; 
+            color: #F1F5F9; 
+            font-size: 13px; 
+            outline: none;
+            transition: 0.2s;
+        }
+        input:focus, select:focus { 
+            border-color: #22C55E; 
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+        select option {
+            background: #0B0F19;
+            color: #F1F5F9;
+        }
+        button { 
+            width: 100%; 
+            background: #16A34A; 
+            color: white; 
+            border: none; 
+            padding: 13px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 12px; 
+            cursor: pointer; 
+            margin-top: 8px; 
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+        button:hover { 
+            background: #15803D; 
+        }
+        .loading { 
+            display: none; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #4ADE80; 
+            margin-top: 12px; 
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-header">
+        <h2>📱 DIGITAL GUEST CHECK-IN</h2>
+        <p>Silakan isi data diri Anda sebelum menuju ruang tunggu atas di <strong>Yamaha Motor Clinic</strong></p>
+    </div>
+    
+    <form id="checkinForm" onsubmit="submitForm(event)">
+        <div class="form-group">
+            <label>NAMA KONSUMEN:</label>
+            <input type="text" id="name" required placeholder="CONTOH: BPK. BUDI">
+        </div>
+        
+        <div class="form-group">
+            <label>NOMOR WHATSAPP / HP:</label>
+            <input type="tel" id="phone" required placeholder="08123456789">
+        </div>
+        
+        <div class="form-group">
+            <label>PLAT NOMOR MOTOR:</label>
+            <input type="text" id="plate" required placeholder="B 1234 XYZ">
+        </div>
+
+        <div class="form-group">
+            <label>TIPE MOTOR YAMAHA:</label>
+            <input type="text" id="model" required placeholder="NMAX / AEROX / FAZZIO">
+        </div>
+        
+        <div class="form-group">
+            <label>KEPERLUAN:</label>
+            <select id="complaint" required>
+                <option value="" disabled selected>Pilih Keperluan Servis</option>
+                <option value="Service">Service</option>
+                <option value="Pembelian Part">Pembelian Part</option>
+                <option value="Booking Service">Booking Service</option>
+                <option value="Konsultasi/Lain-lain">Konsultasi/Lain-lain</option>
+            </select>
+        </div>
+        
+        <button type="submit" id="submitBtn">🚀 KIRIM & OTW RUANG TUNGGU ATAS</button>
+        <div id="loadingText" class="loading">⏳ Mengirim data ke sistem...</div>
+    </form>
+</div>
+
+<script>
+// PASTIKAN URL WEB APP GOOGLE APPS SCRIPT ANDA SUDAH DIPASANG DI SINI
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPS5aVZt4K8IXDqcUqMKTHzes8-sVRpmo1kbeMyDO6BtscKc-q6qGHqNFGdhNOgzfK/exec";
+
+function submitForm(e) {
+    e.preventDefault();
+    
+    document.getElementById('submitBtn').style.display = 'none';
+    document.getElementById('loadingText').style.display = 'block';
+
+    let now = new Date();
+    let timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let formData = {
+        id: 'GUEST-' + Date.now(),
+        time: timeString,
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        model: document.getElementById('model').value,
+        plate: document.getElementById('plate').value,
+        complaint: document.getElementById('complaint').value,
+        status: 'MENUNGGU DI ATAS'
+    };
+
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(() => {
+        alert("✅ Berhasil! Silakan menuju ruang tunggu lantai atas.");
+        document.getElementById('checkinForm').reset();
+        document.getElementById('submitBtn').style.display = 'flex';
+        document.getElementById('loadingText').style.display = 'none';
+    })
+    .catch(error => {
+        alert("❌ Gagal mengirim data. Periksa koneksi internet Anda.");
+        document.getElementById('submitBtn').style.display = 'flex';
+        document.getElementById('loadingText').style.display = 'none';
+    });
+}
+</script>
+</body>
+</html>
